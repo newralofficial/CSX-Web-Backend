@@ -1,15 +1,13 @@
 import express from "express";
-
-// /**
-//  * Endpoint: /api/v1/user
-//  */
+import { verifyJWT } from "../../middlewares/auth.middleware";
+import { getUserById,updateUserDetails, uploadImage } from "../../controllers/user.controller";
+import { uploadFile } from "../../util/s3Client.util";
 
 const router = express.Router();
 
-// // const RESTICT_TO = "admin";
+router.route("/me").get(verifyJWT,getUserById);
+router.route("/update-user").patch(verifyJWT,updateUserDetails);
+router.post('/uploadImage', uploadFile('uploadPicture'),verifyJWT,uploadImage);
 
-// router
-//     .route("/") //
-//     .get(authorization, getAllUsers);
 
 export default router;

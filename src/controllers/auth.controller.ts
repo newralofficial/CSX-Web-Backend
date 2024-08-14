@@ -52,7 +52,7 @@ export const signup: RequestHandler = bigPromise(async (req: Request, res: Respo
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        const user = await User.create({ name, email, password:hashedPassword, gender, termsCondations });
+        const user = (await User.create({ name, email, password:hashedPassword, gender, termsCondations }));
 
         res.json(new ApiResponse(ResponseStatusCode.SUCCESS, user, "User Registered Successfully!"));
        
