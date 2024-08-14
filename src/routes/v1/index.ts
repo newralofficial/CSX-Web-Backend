@@ -1,6 +1,6 @@
 import express from "express";
-import { sendSuccessApiResponse } from "../../middlewares/successApiResponse";
 import authRoute from "./auth.route";
+import blogRoute from "./blog.route";
 
 const router = express.Router();
 
@@ -9,11 +9,13 @@ const router = express.Router();
  */
 
 router.use("/auth", authRoute);
+router.use("/blog", blogRoute);
+
 
 router.get("/", (req, res) => {
     return res.status(200).send({
         uptime: process.uptime(),
-        message: "Yash's API health check :: GOOD",
+        message: "CSX's API health check :: GOOD",
         timestamp: Date.now(),
     });
 });

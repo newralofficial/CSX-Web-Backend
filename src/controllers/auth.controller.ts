@@ -12,11 +12,6 @@ import { ApiResponse } from "../util/apiResponse";
 
 dotenv.config();
 
-const options = {
-    expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-    httpOnly: true,
-};
-
 export const isValidatedPassword = async function (
     usersendPassword: string,
     password: string
@@ -42,14 +37,16 @@ export const signup: RequestHandler = bigPromise(async (req: Request, res: Respo
         } = req.body;
 
         if (!name || !email || !password) {
-            return next(createCustomError("Name, Email and Password fields are required", 400));
+          throw new ApiError( ResponseStatusCode.BAD_REQUEST, "Name, Email and Password fields are required");      
         }
 
 
         const existingUser = await User.findOne({ email, status: 'active' });
 
         if (existingUser) {
-            return next(createCustomError("User Already exists", 400));
+          return res
+          .status(400)
+          .json(new ApiResponse(ResponseStatusCode.BAD_REQUEST, { message: "User already exist" }));
         }
 
 
@@ -57,13 +54,12 @@ export const signup: RequestHandler = bigPromise(async (req: Request, res: Respo
 
         const user = await User.create({ name, email, password:hashedPassword, gender, termsCondations });
 
-        const response = sendSuccessApiResponse("User Registered Successfully!", user);
-        return res.status(201).json(response);
+        res.json(new ApiResponse(ResponseStatusCode.SUCCESS, user, "User Registered Successfully!"));
        
       } catch (error) {
         console.log(error);
-        next(createCustomError("An error occurred during signup", 500));
-    }
+        throw new ApiError(ResponseStatusCode.INTERNAL_SERVER_ERROR, error?.message || "Failure in User registration");
+      }
 });
 
 export const refreshToken: RequestHandler = bigPromise(async (req: Request, res: Response, next: NextFunction) => {
@@ -102,8 +98,6 @@ const getNewToken = async (payload: any) => {
     const isUser = payload?.id ? true : false;
     console.log(isUser);
 
-    // const isInfluencer = payload?.influencerId ? true : false;
-
     let data: any;
     if (isUser) {
         const user: any = await User.findOne({ isActive: true, _id: payload.userId });
@@ -124,9 +118,7 @@ export const login: RequestHandler = async (
 
     if (!email || !password) {
       throw new ApiError(
-        ResponseStatusCode.BAD_REQUEST,
-        "Email and password are required"
-      );
+        ResponseStatusCode.BAD_REQUEST, "Email and password are required");
     }
 
     const user = await User.findOne({ email }).select(
@@ -135,9 +127,7 @@ export const login: RequestHandler = async (
 
     if (!user) {
       throw new ApiError(
-        ResponseStatusCode.UNAUTHORIZED,
-        "Invalid email or password"
-      );
+        ResponseStatusCode.UNAUTHORIZED,  "Invalid email or password");
     }
 
     const isValidPassword = await isValidatedPassword(
@@ -146,9 +136,7 @@ export const login: RequestHandler = async (
     );
     if (!isValidPassword) {
       throw new ApiError(
-        ResponseStatusCode.UNAUTHORIZED,
-        "Invalid email or password"
-      );
+        ResponseStatusCode.UNAUTHORIZED, "Invalid email or password" );
     }
 
     const userDetails = {
@@ -168,53 +156,32 @@ export const login: RequestHandler = async (
 
     res.json(
       new ApiResponse(
-        ResponseStatusCode.SUCCESS,
-        { token, userDetails },
-        `${user.name} Logged In Successfully!`
-      )
+        ResponseStatusCode.SUCCESS,{ token, userDetails },`${user.name} Logged In Successfully!`)
     );
   } catch (error) {
     next(
-      new ApiError(
-        ResponseStatusCode.INTERNAL_SERVER_ERROR,
-        error.message || "Failure in Admin login"
+      new ApiError( ResponseStatusCode.INTERNAL_SERVER_ERROR, error.message || "Failure in User login"
       )
     );
   }
 };
-// export const login: RequestHandler = bigPromise(async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         const { email, password }: { email: string; password: string } = req.body;
-
-//         if (!(email && password)) {
-//             return next(createCustomError("Email and Password fields are required", 400));
-//         }
-
-//         const userExists = await User.findOne({ email, status: 'active' }).select('+password');
-
-//         if (userExists && await userExists.isValidatedPassword(password, userExists.password)) {
-//             userExists.password = undefined;
-//             const data = { token: userExists.getJwtToken(), userExists };
-//             return res
-//                 .cookie("token", data.token, options)
-//                 .send(sendSuccessApiResponse("User LoggedIn Successfully!", data, 201));
-//         } else {
-//             return next(createCustomError("Incorrect Email or Password", 401));
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         next(createCustomError("An error occurred during login", 500));
-//     }
-// });
 
 export const logout = bigPromise(async (req, res, next) => {
+  try {
     res.cookie("token", null, {
-        expires: new Date(Date.now()),
-        httpOnly: true,
+      expires: new Date(Date.now()),
+      httpOnly: true,
     });
 
-    return res.status(200).json({
-        success: true,
-        message: "Logged Out Successfully",
-    });
+    return res.json(
+      new ApiResponse(ResponseStatusCode.SUCCESS, "Logged Out Successfully")
+    );
+  } catch (error) {
+    return res.json(
+      new ApiResponse(
+        ResponseStatusCode.INTERNAL_SERVER_ERROR,
+        "Error in LogOut"
+      )
+    );
+  }
 });

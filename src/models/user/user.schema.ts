@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
@@ -38,16 +37,22 @@ const userSchema = new mongoose.Schema(
       default: 'active',
       required: false,
     },
+    socials:{
+      instagram:{
+        type:String,
+        required:false
+      },
+      twitter:{
+        type:String,
+        required:false
+      },
+      linkedIn:{
+        type:String,
+        required:false
+      },
+    },
   },
   { timestamps: true }
 );
-
-userSchema.methods.getJwtToken = function () {
-  const tokenMap: any = { userId: this._id, phone: this.phone };
-
-  return jwt.sign(tokenMap, process.env.JWT_SECRET!, {
-    expiresIn: process.env.JWT_EXPIRY,
-  });
-};
 
 export default userSchema;
