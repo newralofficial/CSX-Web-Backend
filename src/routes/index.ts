@@ -6,7 +6,7 @@ const router = express.Router();
 router.get("/", (req, res) => {
     return res.status(200).send({
         uptime: process.uptime(),
-        message: "Yash's API health check :: GOOD",
+        message: "CSX's API health check :: GOOD",
         timestamp: Date.now(),
     });
 });
