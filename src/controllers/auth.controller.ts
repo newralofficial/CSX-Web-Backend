@@ -185,3 +185,19 @@ export const logout = bigPromise(async (req, res, next) => {
     );
   }
 });
+
+export const verifyUser = bigPromise(async (req, res, next) => {
+  try {
+    const user = req.user;
+    return res.json(
+      new ApiResponse(ResponseStatusCode.SUCCESS, true, "User Verified Successfully")
+    );
+  } catch (error) {
+    return res.json(
+      new ApiResponse(
+        ResponseStatusCode.INTERNAL_SERVER_ERROR,
+        "Error in verifying user"
+      )
+    );
+  }
+});

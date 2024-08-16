@@ -9,6 +9,8 @@ export interface userTypes {
   name: String;
   email:String;
   gender?: String;
+  phone?: Number;
+  bio?: String;
   password: String;
   profilePicture?:String;
   termsCondations:Boolean;
