@@ -16,17 +16,10 @@ const blogSchema = new Schema({
     type: String,
     required: true
   },
-  author: {
-    type: String,
-    required: true
-  },
-  aboutAuthor: {
-    type: String,
-    required: true
-  },
   date: {
     type: Date,
-    required: true
+    required: false,
+    default: Date.now()
   },
   heroImage: {
     type: String,
@@ -44,12 +37,14 @@ const blogSchema = new Schema({
     type: Schema.Types.ObjectId
   }],
   likedIds: [{
-    type: Schema.Types.ObjectId
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required:false,
   }],
-  authorImage: {
+  tags: [{
     type: String,
-    required: true
-  },
+    required: false
+  }]
 },
 { timestamps: true }
 );

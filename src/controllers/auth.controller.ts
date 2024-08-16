@@ -40,7 +40,10 @@ export const signup: RequestHandler = bigPromise(async (req: Request, res: Respo
           throw new ApiError( ResponseStatusCode.BAD_REQUEST, "Name, Email and Password fields are required");      
         }
 
-
+        if (!termsCondations) {
+          throw new ApiError(ResponseStatusCode.FORBIDDEN, "You must agree to the terms and conditions to proceed.");
+        }
+        
         const existingUser = await User.findOne({ email, status: 'active' });
 
         if (existingUser) {

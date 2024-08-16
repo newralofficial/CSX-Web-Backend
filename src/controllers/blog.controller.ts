@@ -16,16 +16,14 @@ export const createBlog: RequestHandler = bigPromise(async (req: Request, res: R
         const {
             template,
             title,
-            author,
             date,
             heroImage,
             content,
             embeddedImage,
-            aboutAuthor,
-            authorImage,
+            tags,
         } = req.body;
 
-        if (!template || !title || !author || !date || !heroImage || !content || !aboutAuthor || !authorImage) {
+        if (!template || !title || !heroImage || !content) {
             throw new ApiError( ResponseStatusCode.BAD_REQUEST, "All fields are required");      
         }
 
@@ -33,13 +31,11 @@ export const createBlog: RequestHandler = bigPromise(async (req: Request, res: R
             userId:user,
             template,
             title,
-            author,
             date,
             heroImage,
             content,
             embeddedImage,
-            aboutAuthor,
-            authorImage,
+            tags,
         });
 
         res.json(
@@ -93,12 +89,15 @@ export const updateBlog: RequestHandler = bigPromise(async (req: Request, res: R
     }
 });
 
-
 export const fetchBlogById: RequestHandler = bigPromise(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
 
-        const blog = await Blog.findById(id).select('-createdAt -updatedAt -__v');
+        const blog = await Blog.findById(id).select('-createdAt -updatedAt -__v')
+        .populate({
+          path: 'userId',
+          select: 'name profilePicture bio',
+        });
 
         if (!blog) {
             throw new ApiError(ResponseStatusCode.NOT_FOUND, "Blog Not Found" ); 
