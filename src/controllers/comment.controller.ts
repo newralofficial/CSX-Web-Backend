@@ -44,7 +44,6 @@ export const createComment = bigPromise(
   }
 );
 
-
 export const toggleLikeBlog = bigPromise(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -52,31 +51,31 @@ export const toggleLikeBlog = bigPromise(
       const userId = req.user?._id;
 
       if (!blogId || !userId) {
-          throw new ApiError(
-              ResponseStatusCode.BAD_REQUEST,
-              "Blog ID and User ID are required"
-            );
-        }
-        const blog = await Blog.findById(blogId);
-        if (!blog) {
-            throw new ApiError(ResponseStatusCode.NOT_FOUND, "Blog Not Found" ); 
-        }
-      
-      const hasLiked = blog.likedIds.includes(userId);
-
-      if (hasLiked) {
-        blog.likedIds = blog.likedIds.filter(id => id.toString() !== userId);
-      } else {
-        blog.likedIds.push(userId);
+        throw new ApiError(
+          ResponseStatusCode.BAD_REQUEST,
+          "Blog ID and User ID are required"
+        );
       }
-  
-      await blog.save();
-      if (!blog) {
-        throw new ApiError(404, 'Blog not found');
-      }
+      const blog = await Blog.findById(blogId);
       if (!blog) {
         throw new ApiError(ResponseStatusCode.NOT_FOUND, "Blog Not Found");
       }
+
+      const hasLiked = blog.likedIds.includes(userId);
+      console.log(hasLiked);
+
+      if (hasLiked) {
+        await Blog.findByIdAndUpdate(
+          blogId,
+          { $pull: { likedIds: userId } },
+          { new: true }
+        )
+      }
+      else {
+        blog.likedIds.push(userId);
+      }
+      await blog.save();
+
 
       return res.json(
         new ApiResponse(
@@ -86,7 +85,14 @@ export const toggleLikeBlog = bigPromise(
         )
       );
     } catch (error) {
-      next(new ApiError(500, error.message || "Failed to like blog"));
+      res
+        .status(error.statusCode || 500)
+        .json(
+          new ApiError(
+            error.statusCode || ResponseStatusCode.INTERNAL_SERVER_ERROR,
+            error.message || "Internal server error"
+          )
+        )
     }
   }
 );
