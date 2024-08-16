@@ -60,11 +60,11 @@ export const createBlog: RequestHandler = bigPromise(async (req: Request, res: R
 
 export const updateBlog: RequestHandler = bigPromise(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id } = req.params;
-        const updateData = req.body;
+      const { blogId } = req.params;
+      const updateData = req.body;
 
 
-        const blog = await Blog.findByIdAndUpdate(id, updateData, { new: true }).select('-createdAt -updatedAt -__v');
+        const blog = await Blog.findByIdAndUpdate(blogId, updateData, { new: true }).select('-createdAt -updatedAt -__v');
 
         if (!blog) {
             throw new ApiError(ResponseStatusCode.NOT_FOUND, "Blog Not Found" ); 
@@ -89,22 +89,70 @@ export const updateBlog: RequestHandler = bigPromise(async (req: Request, res: R
     }
 });
 
+export const fetchBlogs: RequestHandler = bigPromise(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+    const page = parseInt(req.query.page as string, 10) || 1;
+
+      const skip = (page - 1) * limit;
+      const blog = await Blog.find().select('-embeddedImage -comments -likedIds -createdAt -updatedAt -__v')
+      .populate({
+        path: 'userId',
+        select: 'name profilePicture',
+      })
+      .limit(limit)
+      .skip(skip);
+
+      if (!blog) {
+          throw new ApiError(ResponseStatusCode.NOT_FOUND, "Blog Not Found" ); 
+      }
+
+      return res.json(
+          new ApiResponse( ResponseStatusCode.SUCCESS, blog, "Blog fetched successfully!")
+        );
+
+  } catch (error) {
+      res
+      .status(error.statusCode || 500)
+      .json(
+        new ApiError(
+          error.statusCode || ResponseStatusCode.INTERNAL_SERVER_ERROR,
+          error.message || "An error occurred while fetching the blog"
+        )
+      );
+  }
+});
+
 export const fetchBlogById: RequestHandler = bigPromise(async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { id } = req.params;
+        const { blogId } = req.params;
+        let recentBlogs;
+        const blog = await Blog.findById(blogId).select('-createdAt -updatedAt -__v')
 
-        const blog = await Blog.findById(id).select('-createdAt -updatedAt -__v')
-        .populate({
-          path: 'userId',
-          select: 'name profilePicture bio',
-        });
+        
+        if (blog.template === 'simple') {
+          await blog.populate({
+            path: 'userId',
+            select: 'name profilePicture bio',
+          });
+        } else if (blog.template === 'advanced') {
+          await blog.populate({
+            path: 'userId',
+            select: 'name profilePicture bio socials', 
+          });
+
+          recentBlogs = await Blog.find().select('title template heroImage')
+          .sort({date: -1,})
+          .limit(3);           
+        }
+      
 
         if (!blog) {
             throw new ApiError(ResponseStatusCode.NOT_FOUND, "Blog Not Found" ); 
         }
 
         return res.json(
-            new ApiResponse( ResponseStatusCode.SUCCESS, blog, "Blog fetched successfully!")
+            new ApiResponse( ResponseStatusCode.SUCCESS, {blog,recentBlogs}, "Blog fetched successfully!")
           );
 
     } catch (error) {
