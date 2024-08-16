@@ -1,7 +1,8 @@
 import express from "express";
 import authRoute from "./auth.route";
 import blogRoute from "./blog.route";
-import userRoute from "./user.route"
+import userRoute from "./user.route";
+import commentRoute from "./comment.route";
 const router = express.Router();
 
 /**
@@ -11,6 +12,8 @@ const router = express.Router();
 router.use("/auth", authRoute);
 router.use("/blog", blogRoute);
 router.use("/user",userRoute);
+router.use("/comment",commentRoute);
+
 
 router.get("/", (req, res) => {
     return res.status(200).send({

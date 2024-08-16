@@ -34,7 +34,8 @@ const blogSchema = new Schema({
     required: false
   },
   comments: [{
-    type: Schema.Types.ObjectId
+    type: Schema.Types.ObjectId,
+    ref: 'Comment',
   }],
   likedIds: [{
     type: Schema.Types.ObjectId,

@@ -1,7 +1,7 @@
 import { Document, Model, Schema } from 'mongoose';
 
 export interface commentTypes {
-  body: string;
+  description: string;
   userId: Schema.Types.ObjectId;
   blogId: Schema.Types.ObjectId;
 }

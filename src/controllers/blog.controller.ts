@@ -9,8 +9,8 @@ import bigPromise from '../middlewares/bigPromise';
 export const createBlog: RequestHandler = bigPromise(async (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        const user = req.user?._id;
-        if (!user) {
+        const userId = req.user?._id;
+        if (!userId) {
             throw new ApiError(ResponseStatusCode.UNAUTHORIZED, "User not found");
         }
         const {
@@ -28,7 +28,7 @@ export const createBlog: RequestHandler = bigPromise(async (req: Request, res: R
         }
 
         const blog = await Blog.create({
-            userId:user,
+            userId,
             template,
             title,
             date,
@@ -127,8 +127,16 @@ export const fetchBlogById: RequestHandler = bigPromise(async (req: Request, res
     try {
         const { blogId } = req.params;
         let recentBlogs;
-        const blog = await Blog.findById(blogId).select('-createdAt -updatedAt -__v')
-
+        const blog = await Blog.findById(blogId)
+        .select('-createdAt -updatedAt -__v')
+        .populate({
+          path: 'comments', 
+          select: 'description userId',
+          populate: {
+            path: 'userId',
+            select: 'name profilePicture'
+          }
+        });
         
         if (blog.template === 'simple') {
           await blog.populate({
