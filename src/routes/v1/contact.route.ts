@@ -2,9 +2,9 @@ import express from "express";
 const router = express.Router();
 
 import { verifyJWT } from "../../middlewares/auth.middleware";
-import { toggleLikeBlog } from "../../controllers/comment.controller";
+import { createContact } from "../../controllers/contact.controller";
 
 
-// router.route("/create").post(verifyJWT,createComment);
+router.route("/send").post(verifyJWT,createContact);
 
 export default router;

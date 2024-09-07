@@ -3,6 +3,7 @@ import authRoute from "./auth.route";
 import blogRoute from "./blog.route";
 import userRoute from "./user.route";
 import commentRoute from "./comment.route";
+import contactRoute from "./contact.route";
 const router = express.Router();
 
 /**
@@ -13,6 +14,8 @@ router.use("/auth", authRoute);
 router.use("/blog", blogRoute);
 router.use("/user",userRoute);
 router.use("/comment",commentRoute);
+router.use("/contact",contactRoute);
+
 
 
 router.get("/", (req, res) => {
